@@ -56,7 +56,7 @@
           <span>{{ task.category }}</span>
         </td>
         <td>
-          <div class="text-center settings" @click="editReport(index)">
+          <div class="text-center settings" v-b-tooltip.hover title="Click to edit task" @click="editReport(index)">
             <span class="fa fa-edit "></span>
           </div>
         </td>
