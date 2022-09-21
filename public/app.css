@@ -1,0 +1,93 @@
+/** {
+    border: 1px solid red;
+}*/
+body {
+    background-color: #f5f5f5 !important;
+}
+.bugreport {
+
+}
+.bug-report-list {
+    transition: all 0.3s;
+    animation: slide 0.5s forwards;
+    box-shadow: 0.0rem 0.05rem 0.0rem rgba(0, 0, 0, 0.10);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0;
+    margin: 0.2rem;
+    background: linear-gradient(to top, hsl(0, 0%, 0%, 0) 0%, hsl(0, 0%, 100%, 1) 70%, hsl(0, 0%, 100%, 1) 100%);
+}
+.bug-report-list:hover {
+    box-shadow: 0 0.2rem 0.8rem rgba(0, 0, 0, 0.20);
+}
+.status {
+    cursor: pointer;
+    user-select: none;
+}
+@keyframes slide {
+    0% {
+        opacity: 0;
+        transform: translateY(20%);
+    }
+    100% {
+        opacity: 1;
+    }
+}
+.blinker {
+    animation: blinker 0.3s infinite;
+}
+@keyframes blinker {
+    0% {
+        opacity: 0.7;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.7;
+    }
+}
+.settings {
+    cursor: pointer;
+    transition: all 0.3s;
+    border-radius: 0.4rem;
+    border: 1px solid #fff;
+    width: 2rem;
+    margin: 0.3rem;
+}
+.settings:hover {
+    border: 1px solid #ccc;
+}
+.settings-item {
+    width: 6rem;
+    flex-wrap: wrap;
+}
+.settings:hover {
+    color: #018001;
+    background: white;
+    box-shadow: #949494 0px 0px 2px;
+}
+.task-edit-input {
+    animation: slide 0.5s forwards;
+    border: 0px solid #eaeaea;
+    margin-left: 0.3rem;
+    border-radius: 0.3rem;
+    width: 90%;
+    background: none;
+}
+.task-edit-input:focus {
+    border: none;
+    box-shadow: none;
+    outline: none;
+}
+.task-edit {
+    animation: slide 0.5s forwards;
+    border: 0px solid #eaeaea;
+    margin-left: 0.3rem;
+    border-radius: 0.3rem;
+    background: none;
+}
+.task-edit:focus {
+    border: none;
+    box-shadow: none;
+    outline: none;
+}

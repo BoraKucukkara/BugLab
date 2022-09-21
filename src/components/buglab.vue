@@ -1,25 +1,107 @@
 <template>
   <div class="container">
-    <h2 class="display-6 fw-bolder mt-3 mb-3 text-success">Bug.Lab <span class="text-secondary fa fa-bug-slash">/ report and fix some bugs</span></h2>
+    <header class="row row-cols-3 mb-3 mt-3">
+      <h2 class="col display-6 fw-bolder text-success">Bug.Lab <span class="text-secondary fa fa-bug-slash"></span></h2>
+      <p class="col"></p>
+      <span class="col text-end">Reported <b-badge class="badge bg-gradient bg-secondary">{{ bugReportCounter }}</b-badge></span>
+    </header>
     <!-- input -->
-    <div class="d-flex input-group input-group-lg">
-      <input v-model="task" type="text" placeholder="Report a bug" class="form-control w-50">
-      <select v-model="cat" class="form-control">
-        <option>Back-end</option>
-        <option>Front-end</option>
-        <option>UI/UX</option>
-      </select>
-      <select v-model="prio" class="form-control">
-        <option>high</option>
-        <option>medium</option>
-        <option>low</option>
-      </select>
-      <button @click="submitReport" class="btn btn-success"><i class="fa fa-bug"></i></button>
+    <div class="p-2 gap-1 rounded-3 row">
+      <div class="input-group input-group-lg">
+        <input v-model="taskValue" type="text" placeholder="Report a bug" class="form-control" required>
+      </div>
+      <div class="input-group input-group-lg">
+        <b-form-select class="form-control fs-6 text-secondary"
+                       v-model="catValue"
+                       :options="$store.state.categories"
+                       required>
+        </b-form-select>
+        <b-form-select class="form-control fs-6 text-secondary"
+                       v-model="prioValue"
+                       :options="$store.state.priorities"
+                       required
+        ></b-form-select>
+        <button @click="submitBug" class="btn bg-gradient btn-success"><i class="fa fa-bug"></i> Report</button>
+      </div>
     </div>
 
-    <!-- data -->
+    <!-- Bug Reports Data-->
+    <div class="container">
+      <h3 class="mt-3 text-secondary lead">Reports</h3>
+      <div v-for="(task, index) in $store.state.tasks" :key="index">
+        <div class="row py-3 row-cols-auto bug-report-list"  v-if="$store.state.tasks[index].isArchive === false"
+             :class="{' bg-light': $store.state.tasks[index].isEdit === true}">
+        <!-- Reports -->
+          <div class="col-sm-12 col-md-12 col-lg-7 col-xl-8" >
+            <div :class="{'text-success': task.status === 'done',
+                          'text-primary': task.status === 'in-progress',
+                          'text-secondary': task.status === 'refused' || task.status === 'waiting' }" class="bugreport" >
+              <span class="lh-lg" v-show="!task.isEdit">
+                 <i class="fs-6 fa fa-bug"></i> {{ task.name }}
+              </span>
+              <span class="lh-lg" v-show="task.isEdit">
+                <b-badge class="badge bg-opacity-50 bg-gradient bg-secondary blinker">EDIT</b-badge>
+                <!-- how the f** is this v-model working -->
+                <input v-model="task.name"
+                       @blur="$store.state.tasks[index].isEdit = false"
+                       @keydown.enter="$store.state.tasks[index].isEdit = false"
+                       class="task-edit-input" type="text">
+              </span>
+
+              <!--<b-badge v-if="(task.priority) === 'Highest' && (task.status) !== 'done'" class="bg-danger rounded-circle bg-gradient text-white">!</b-badge>-->
+            </div>
+          </div>
+          <!-- Settings -->
+          <div class="col-sm-12 col-md-12 col-lg-4 col-xl-4 align-content-end">
+
+            <div class="d-inline-flex flex-row align-items-center">
+              <div class="badge status settings-item"
+                   :class="{'progress-bar-striped progress-bar-animated bg-primary': task.status === 'in-progress',
+                            'bg-secondary': task.status === 'to-do',
+                            'bg-success': task.status === 'done',
+                            'bg-danger': task.status === 'refused',
+                            'progress-bar-striped progress-bar-animated bg-opacity-75 bg-secondary': task.status === 'waiting',
+                            }"
+                   @click="changeStatus(index)">
+                {{ task.status }}
+              </div>
+
+              <div v-show="!task.isEdit" class="badge text-secondary settings-item">
+                {{ task.priority | upperCase }}
+              </div>
+              <b-form-select v-show="task.isEdit" class="badge task-edit text-secondary"
+                             v-model="task.priority"
+                             :options="$store.state.priorities"
+                             @change="$store.state.tasks[index].isEdit = false"
+                             required>
+              </b-form-select>
+
+              <div v-show="!task.isEdit" class="badge text-dark settings-item">
+                {{ task.category | upperCase }}
+              </div>
+              <b-form-select v-show="task.isEdit" class="badge task-edit text-secondary"
+                             v-model="task.category"
+                             :options="$store.state.categories"
+                             @change="$store.state.tasks[index].isEdit = false"
+                             required>
+              </b-form-select>
+
+              <div class="text-center settings" v-b-tooltip.hover.left="'Edit'" @click="$store.state.tasks[index].isEdit = true">
+                <span class="fa fa-edit "></span>
+              </div>
+
+              <div class="text-center settings" v-b-tooltip.hover.right="'Archive'" @click="ArchiveBug(index)">
+                <div class="fa fa-archive" title="send to archive"></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- data
     <table class="table mt-4 lh-lg">
-      <thead class="text-secondary ">
+      <thead class="text-secondary">
       <tr>
         <th scope="col">Reported Bugs</th>
         <th scope="col">Status</th>
@@ -30,138 +112,95 @@
       </tr>
       </thead>
       <tbody>
-      <tr v-for="(task, index) in tasks" :key="index">
-        <th>
+      <tr v-for="(task, index) in tasks" :key="index" >
+        <td>
           <span :class="{'text-success': task.status === 'done',
                          'text-primary': task.status === 'in-progress',
-                         'text-danger': task.status === 'refused'}" class="h6" >
+                         'text-danger': task.status === 'refused'}" class="h6 bugreport" >
             <i class="fs-6 fa fa-bug" style="width: 30px"></i>
-            {{ task.name }}
+            {{ task.name }} <b-badge v-if="(task.priority) === 'highest' && (task.status) !== 'done'" class="bg-danger rounded-circle bg-gradient text-white">!</b-badge>
           </span>
-        </th>
+        </td>
         <td style="width:120px;">
-          <span class="badge  status"
+          <span class="badge status"
                 :class="{'progress-bar-striped progress-bar-animated bg-primary': task.status === 'in-progress',
                           'bg-secondary': task.status === 'to-do',
                           'bg-success': task.status === 'done',
                           'bg-danger': task.status === 'refused',
+                          'progress-bar-striped progress-bar-animated bg-warning': task.status === 'waiting',
                           }"
                 @click="changeStatus(index)">
             {{ task.status }}</span>
         </td>
         <td>
-          <span>{{ task.priority }}</span>
+          <span class="badge text-secondary">
+            {{ task.priority | upperCase }}</span>
         </td>
         <td>
-          <span>{{ task.category }}</span>
+          <span class="badge text-dark">{{ task.category | upperCase }}</span>
         </td>
         <td>
-          <div class="text-center settings" v-b-tooltip.hover title="Click to edit task" @click="editReport(index)">
+          <div v-b-tooltip.hover.left="'Edit'" class="text-center settings" @click="editReport(index)">
             <span class="fa fa-edit "></span>
           </div>
         </td>
         <td>
-          <div class="text-center settings" @click="deleteReport(index)">
+          <div v-b-tooltip.hover.right="'Archive'" class="text-center settings" @click="deleteReport(index)">
             <span class="fa fa-archive" title="send to archive"></span>
           </div>
         </td>
       </tr>
       </tbody>
-    </table>
+    </table>-->
   </div>
 </template>
 
 <script>
+import {mapMutations, mapState, mapActions} from "vuex";
 export default {
   name: 'Bug-Lab',
-  props: {
-    msg: String
-  },
   data() {
     return {
-      task: '',
-      cat: '',
-      prio: '',
-      editedReport: null,
-      statuses: ['to-do', 'in-progress', 'done', 'refused'],
-      priorities: ['high', 'medium', 'low'],
-      tasks: [
-        {
-          name: 'Account page profile picture shows same picture twice',
-          status: 'to-do',
-          category: 'UI/UX',
-          priority: 'high',
-        },
-        {
-          name: 'User logout not working on profile page ',
-          status: 'done',
-          category: 'Back-end',
-          priority: 'low',
-        },
-        {
-          name: 'Homepage link returns http, should be https',
-          status: 'to-do',
-          category: 'Front-end',
-          priority: 'medium',
-        }
-      ]
     }
   },
   methods: {
-    submitReport() {
-      if(this.task.length === 0) return;
-      if(this.editedReport == null) {
-        this.tasks.push({
-          name: this.task,
-          status: 'to-do',
-          category: this.cat,
-          priority: this.prio
-        });
-      } else {
-          this.tasks[this.editedReport].name = this.task;
-          this.tasks[this.editedReport].category = this.cat;
-          this.tasks[this.editedReport].priority = this.prio;
-          this.editedReport = null;
+    ...mapMutations ([
+        'ArchiveBug', // Sends to archive
+        'changeStatus' // Switches status to-do, in-progress, waiting, refused, done...
+    ]),
+    ...mapActions([
+        'submitBug', // Async submit action
+    ]),
+  },
+  computed: {
+    ...mapState(['categories', 'priorities', 'statuses']),
+    bugReportCounter() { // Returns total report count.
+      return this.$store.state.tasks.length;
+    },
+    taskValue : { // Handling for v-model input
+      get(){
+        return this.$store.getters.getTask;
+      },
+      set(value){
+        return this.$store.commit("setTaskData", value);
       }
-      this.task = '';
     },
-    deleteReport(index){
-      this.tasks.splice(index, 1);
+    catValue : { // Handling for v-model input
+      get(){
+        return this.$store.getters.getCat;
+      },
+      set(value){
+        return this.$store.commit("setCatData", value);
+      }
     },
-    editReport(index) {
-      this.task = this.tasks[index].name;
-      this.cat = this.tasks[index].category;
-      this.prio = this.tasks[index].priority;
-      this.editedReport = index;
-    },
-    changeStatus(index) {
-      let newIndex = this.statuses.indexOf(this.tasks[index].status);
-      if(++newIndex > 3) newIndex = 0;
-      this.tasks[index].status = this.statuses[newIndex];
+    prioValue : { // Handling for v-model input
+      get(){
+        return this.$store.getters.getPrio;
+      },
+      set(value){
+        return this.$store.commit("setPrioData", value);
+      }
     }
   }
 }
 </script>
-
-
-<style scoped>
-tr {
-  transition: all 0.3s;
-}
-.status {
-  cursor: pointer;
-}
-.settings {
-  cursor: pointer;
-  transition: all 0.3s;
-  border-radius: 20px;
-}
-.settings:hover {
-  color: #018001;
-  background: white;
-}
-tr:hover {
-  background-color: #f3f3f3;
-
-}
-</style>
